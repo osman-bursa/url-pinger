@@ -1,11 +1,11 @@
 import cn from './utils/cn';
 import MainHeader from './components/MainHeader';
-import WebsiteList from './components/WebsiteList';
-import LinkProvider from './proivders/UrlProvider';
+import UrlList from './components/UrlList';
+import UrlProvider from './providers/UrlProvider';
 
 function App() {
 	return (
-		<LinkProvider>
+		<UrlProvider>
 			<div
 				className={cn(
 					'h-full min-h-screen w-full min-w-screen overflow-x-hidden',
@@ -13,9 +13,9 @@ function App() {
 				)}
 			>
 				<MainHeader />
-				<WebsiteList />
+				<UrlList />
 			</div>
-		</LinkProvider>
+		</UrlProvider>
 	);
 }
 
