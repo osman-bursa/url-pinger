@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, screen } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -29,7 +29,24 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null
 
 function createWindow() {
+	const cursorPoint = screen.getCursorScreenPoint();
+	const display = screen.getDisplayNearestPoint(cursorPoint);
+	const { x, y, width, height } = display.workArea;
+
+	const windowWidth = 300; 
+	const windowHeight = Math.floor(height * 0.75); 
+	const maxHeight = height; 
+
 	win = new BrowserWindow({
+		width: windowWidth,
+		height: windowHeight,
+		maxWidth: windowWidth,
+		maxHeight: maxHeight,
+		x: x + width - windowWidth,
+		y: y + height - windowHeight,
+		alwaysOnTop: true,
+		skipTaskbar: false,
+		frame: false,
 		icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.mjs')
