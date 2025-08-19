@@ -1,7 +1,8 @@
-import { app, BrowserWindow, screen } from 'electron'
+import { app, BrowserWindow, screen, ipcMain } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import fetch from "node-fetch"
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -33,9 +34,9 @@ function createWindow() {
 	const display = screen.getDisplayNearestPoint(cursorPoint);
 	const { x, y, width, height } = display.workArea;
 
-	const windowWidth = 300; 
-	const windowHeight = Math.floor(height * 0.75); 
-	const maxHeight = height; 
+	const windowWidth = 300;
+	const windowHeight = Math.floor(height * 0.75);
+	const maxHeight = height;
 
 	win = new BrowserWindow({
 		width: windowWidth,
@@ -81,6 +82,15 @@ app.on('activate', () => {
 	// dock icon is clicked and there are no other windows open.
 	if (BrowserWindow.getAllWindows().length === 0) {
 		createWindow()
+	}
+})
+
+ipcMain.handle("check-url", async (_, url) => {
+	try {
+		const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+		return { ok: res.ok, status: res.status };
+	} catch (e) {
+		return { ok: false, status: null };
 	}
 })
 

@@ -1,60 +1,10 @@
-import { app, BrowserWindow, screen } from "electron";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-process.env.APP_ROOT = path.join(__dirname, "..");
-const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
-const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
-const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
-function createWindow() {
-  const cursorPoint = screen.getCursorScreenPoint();
-  const display = screen.getDisplayNearestPoint(cursorPoint);
-  const { x, y, width, height } = display.workArea;
-  const windowWidth = 300;
-  const windowHeight = Math.floor(height * 0.75);
-  const maxHeight = height;
-  win = new BrowserWindow({
-    width: windowWidth,
-    height: windowHeight,
-    maxWidth: windowWidth,
-    maxHeight,
-    x: x + width - windowWidth,
-    y: y + height - windowHeight,
-    alwaysOnTop: true,
-    skipTaskbar: false,
-    frame: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      preload: path.join(__dirname, "preload.mjs")
-    }
-  });
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
-  }
-}
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-  }
-});
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-app.whenReady().then(createWindow);
+import "electron";
+import "node:module";
+import "node:url";
+import "node:path";
+import { M, R, V } from "./main-DNnZyfpa.js";
 export {
-  MAIN_DIST,
-  RENDERER_DIST,
-  VITE_DEV_SERVER_URL
+  M as MAIN_DIST,
+  R as RENDERER_DIST,
+  V as VITE_DEV_SERVER_URL
 };

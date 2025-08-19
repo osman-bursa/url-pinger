@@ -27,7 +27,7 @@ const UrlCard = ({ item }: { item: UrlItem; }) => {
           />
           <div>{item.status ? 'online' : 'offline'}</div>
         </div>
-        <div>time</div>
+        <div>{"xd"}</div>
         <div>
           <Trash2
             className="cursor-pointer"

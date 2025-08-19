@@ -1,4 +1,7 @@
-import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useState } from 'react';
+import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
+import { checkUrlStatus } from '../services';
+import { initialUrls } from '../utils/constants';
+import { URL_CHECK_INTERVAL } from '../utils/constants';
 
 export type UrlItem = {
 	label: string;
@@ -9,54 +12,56 @@ export type UrlItem = {
 type LinkProviderValue = {
 	urls: Array<UrlItem>;
 	setUrls: Dispatch<SetStateAction<UrlItem[]>> | (() => void);
+	lastCheckedDate: Date | null;
+	setLastCheckedDate: Dispatch<SetStateAction<Date | null>> | (() => void);
 };
 
-const initials: UrlItem[] = [
-	{
-		label: "server",
-		url: 'http://192.168.30.13:8801',
-		status: true
-	},
-	{
-		label: "uyum",
-		url: 'http://192.168.30.13:8802',
-		status: true
-	},
-	{
-		label: "retmes",
-		url: 'http://192.168.30.13:8803',
-		status: true
-	},
-	{
-		label: "mongo",
-		url: 'http://192.168.30.13:8804',
-		status: true
-	},
-	{
-		label: "mqtt",
-		url: 'http://192.168.30.13:8805',
-		status: true
-	},
-	{
-		label: "utils",
-		url: 'http://192.168.30.13:8806',
-		status: true
-	},
-]
-
 const UrlContext = createContext<LinkProviderValue>({
-	urls: initials,
-	setUrls: () => { }
+	urls: initialUrls,
+	setUrls: () => { },
+	lastCheckedDate: null,
+	setLastCheckedDate: () => { }
 })
 
 const UrlProvider = ({ children }: { children: ReactNode; }) => {
-	const [urlItems, setUrlItems] = useState<UrlItem[]>(initials);
+	const [urls, setUrls] = useState<UrlItem[]>(initialUrls);
+	const [lastCheckedDate, setLastCheckedDate] = useState<Date | null>(null);
+
+	useEffect(() => {
+		const interval = setInterval(handleUrlChecks, URL_CHECK_INTERVAL);
+		return () => clearInterval(interval);
+	}, []);
+
+	async function handleUrlChecks() {
+		setUrls(prevUrls => {
+			if (!prevUrls.length)
+				return prevUrls;
+
+			const resultsPromise = Promise.all(
+				prevUrls.map(async (u) => {
+					const isOnline = await checkUrlStatus(u.url);
+					return { ...u, status: isOnline };
+				})
+			);
+
+			resultsPromise.then(result => {
+				setUrls(result);
+				setLastCheckedDate(new Date());
+				console.log("result: ", result, new Date())
+			})
+
+			return prevUrls;
+		});
+		setLastCheckedDate(new Date())
+	}
 
 	return (
 		<UrlContext.Provider
 			value={{
-				urls: urlItems,
-				setUrls: setUrlItems
+				urls: urls,
+				setUrls: setUrls,
+				lastCheckedDate: lastCheckedDate,
+				setLastCheckedDate: setLastCheckedDate
 			}}
 		>
 			{children}
