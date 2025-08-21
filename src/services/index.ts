@@ -7,6 +7,10 @@ export async function checkUrlStatus(url: string): Promise<boolean> {
   }
 }
 
+export function openUrl(url: string){
+  window.ipcRenderer.invoke('open-external-url', url)
+}
+
 export function getRelativeTime(lastChecked?: string | Date) {
   if (!lastChecked) 
     return "";

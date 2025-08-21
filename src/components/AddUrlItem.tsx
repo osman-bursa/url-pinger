@@ -34,7 +34,8 @@ function AddUrlItem() {
           <div className='flex w-full h-10 items-center justify-center gap-1 rounded-xl bg-gray-800 p-2'>
             <input
               className='w-full'
-              placeholder='url' type='text'
+              placeholder='url' 
+              type='text'
               onChange={(e) => setValues(prev => ({
                 ...prev,
                 url: e.target.value

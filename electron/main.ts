@@ -1,8 +1,8 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron'
+import { app, BrowserWindow, screen, ipcMain, shell } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import fetch from "node-fetch"
+import fetch from 'node-fetch'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -30,13 +30,13 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null
 
 function createWindow() {
-	const cursorPoint = screen.getCursorScreenPoint();
-	const display = screen.getDisplayNearestPoint(cursorPoint);
-	const { x, y, width, height } = display.workArea;
+	const cursorPoint = screen.getCursorScreenPoint()
+	const display = screen.getDisplayNearestPoint(cursorPoint)
+	const { x, y, width, height } = display.workArea
 
-	const windowWidth = 300;
-	const windowHeight = Math.floor(height * 0.75);
-	const maxHeight = height;
+	const windowWidth = 280
+	const windowHeight = Math.floor(height * 0.6)
+	const maxHeight = height
 
 	win = new BrowserWindow({
 		width: windowWidth,
@@ -85,13 +85,17 @@ app.on('activate', () => {
 	}
 })
 
-ipcMain.handle("check-url", async (_, url) => {
+ipcMain.handle('check-url', async (_, url) => {
 	try {
-		const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-		return { ok: res.ok, status: res.status };
+		const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(5000) })
+		return { ok: res.ok, status: res.status }
 	} catch (e) {
-		return { ok: false, status: null };
+		return { ok: false, status: null }
 	}
+})
+
+ipcMain.handle('open-external-url', async (_, url) => {
+	shell.openExternal(url)
 })
 
 app.whenReady().then(createWindow)
