@@ -1,20 +1,21 @@
 import { Circle, Copy, ExternalLink, Trash2 } from 'lucide-react'
 import { UrlItem, useUrls } from '../providers/UrlProvider'
 import cn from '../utils/cn'
-import { openUrl } from '../services'
+import { deleteUrl, openUrl } from '../services'
 
 const UrlCard = ({ item }: { item: UrlItem }) => {
 	const { setUrls } = useUrls()
 
 	const handleDelete = () => {
-		setUrls(prev => [...prev.filter(u => u.url != item.url)])
+		setUrls(prev => [...prev.filter(u => u.id != item.id)])
+		if (item.id) {
+			deleteUrl(item.id)
+		}
 	}
 
 	const handleCopy = async () => {
 		try {
 			await navigator.clipboard.writeText(item.url)
-			// optional: show a toast/snackbar
-			console.log('Copied:', item.url)
 		} catch (err) {
 			console.error('Failed to copy:', err)
 		}

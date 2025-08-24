@@ -1,11 +1,16 @@
 import { app, BrowserWindow, screen, ipcMain, shell } from 'electron'
 import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, Url } from 'node:url'
 import path from 'node:path'
 import fetch from 'node-fetch'
+import { Database as BetterSqliteDatabase } from 'better-sqlite3'
+import { UrlItem } from '../src/providers/UrlProvider'
 
 const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const Database = require('better-sqlite3');
 
 // The built directory structure
 //
@@ -28,6 +33,24 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 	: RENDERER_DIST
 
 let win: BrowserWindow | null
+let db: BetterSqliteDatabase
+
+function connectToDb() {
+	const dbPath = path.join(app.getPath('userData'), 'app.db')
+	db = new Database(dbPath);
+	db.pragma('journal_mode = WAL');
+	console.log("connecting to sqlite db...")
+	console.log("db file path:", dbPath)
+
+	db.prepare(`
+	  CREATE TABLE IF NOT EXISTS urls (
+	    id INTEGER PRIMARY KEY AUTOINCREMENT,
+	    label TEXT NOT NULL,
+	    url TEXT NOT NULL,
+	    status INTEGER NOT NULL
+	  )
+	`).run()
+}
 
 function createWindow() {
 	const cursorPoint = screen.getCursorScreenPoint()
@@ -65,6 +88,8 @@ function createWindow() {
 		// win.loadFile('dist/index.html')
 		win.loadFile(path.join(RENDERER_DIST, 'index.html'))
 	}
+
+	console.log("app window created successfully")
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -98,4 +123,47 @@ ipcMain.handle('open-external-url', async (_, url) => {
 	shell.openExternal(url)
 })
 
-app.whenReady().then(createWindow)
+ipcMain.handle('add-url', (_, { label, url, status }): UrlItem => {
+	const stmt = db.prepare('INSERT INTO urls (label, url, status) VALUES (?, ?, ?)')
+	const info = stmt.run(label, url, status ? 1 : 0)
+
+	const newItem: UrlItem = {
+		id: Number(info.lastInsertRowid),
+		label,
+		url,
+		status
+	}
+	return newItem
+})
+
+ipcMain.handle('delete-url', (_, id: number) => {
+	const getStmt = db.prepare('SELECT * FROM urls WHERE id = ?')
+	const item: any = getStmt.get(id)
+	if (!item) return null // not found
+
+	const deleteStmt = db.prepare('DELETE FROM urls WHERE id = ?')
+	deleteStmt.run(id)
+
+	const deletedItem: UrlItem = {
+		...item,
+		status: Boolean(item.status)
+	}
+
+	return deletedItem
+})
+
+ipcMain.handle('get-urls', () => {
+	const stmt = db.prepare("SELECT * FROM urls")
+	const rows = stmt.all()
+	return rows.map((r: any) => ({
+		id: r.id,
+		label: r.label,
+		url: r.url,
+		status: !!r.status
+	}))
+})
+
+app.whenReady().then(() => {
+	connectToDb()
+	createWindow()
+})

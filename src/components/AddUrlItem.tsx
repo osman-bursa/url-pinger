@@ -2,6 +2,7 @@ import { Plus, X } from "lucide-react";
 import { useUrls } from "../providers/UrlProvider";
 import { useState } from "react";
 import TooltipWrapper from "./TooltipWrapper";
+import { addUrl } from "../services";
 
 type AddUrlFormValues = {
   label: string;
@@ -34,7 +35,7 @@ function AddUrlItem() {
           <div className='flex w-full h-10 items-center justify-center gap-1 rounded-xl bg-gray-800 p-2'>
             <input
               className='w-full'
-              placeholder='url' 
+              placeholder='url'
               type='text'
               onChange={(e) => setValues(prev => ({
                 ...prev,
@@ -43,7 +44,12 @@ function AddUrlItem() {
             />
             <TooltipWrapper content="Add new url item">
               <Plus className='hover:bg-green-300 hover:text-gray-800 rounded cursor-pointer aspect-square'
-                onClick={() => setUrls(prev => [...prev, { ...values, status: false }])}
+                onClick={async () => {
+                  const newItem = { ...values, status: false }
+                  const res = await addUrl(newItem)
+                  if (res)
+                    setUrls(prev => [...prev, { ...res }])
+                }}
               />
             </TooltipWrapper>
             <TooltipWrapper content="Cancel">
