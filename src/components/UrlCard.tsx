@@ -28,7 +28,7 @@ const UrlCard = ({ item }: { item: UrlItem }) => {
 				className={cn({ 'text-green-300': item.status }, { 'text-red-300': !item.status })}
 				fill={item.status ? '#7bf1a8' : '#fca5a5'}
 			/>
-			<div className="hover: flex w-full flex-1 items-center truncate hover:bg-gray-400">{`${item.label}`}</div>
+			<div className="hover: flex w-full flex-1 items-center truncate">{`${item.label}`}</div>
 			<div className="flex items-center justify-center gap-0.5">
 				<ExternalLink
 					className="w-4 hover:w-6 hover:text-indigo-300"

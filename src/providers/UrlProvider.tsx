@@ -1,7 +1,6 @@
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
 import { checkUrlStatus, getAllUrls } from '../services';
 import { URL_CHECK_INTERVAL } from '../utils/constants';
-import { delay } from '../lib/utils';
 
 export type UrlItem = {
 	id: number;
@@ -15,6 +14,8 @@ export type UrlItemPayload = Omit<UrlItem, 'id'>;
 type LinkProviderValue = {
 	urls: Array<UrlItem>;
 	setUrls: Dispatch<SetStateAction<UrlItem[]>> | (() => void);
+	online: number;
+	offline: number;
 	lastCheckedDate: Date | null;
 	setLastCheckedDate: Dispatch<SetStateAction<Date | null>> | (() => void);
 };
@@ -22,6 +23,8 @@ type LinkProviderValue = {
 const UrlContext = createContext<LinkProviderValue>({
 	urls: [],
 	setUrls: () => { },
+	online: 0,
+	offline: 0,
 	lastCheckedDate: null,
 	setLastCheckedDate: () => { }
 })
@@ -29,10 +32,13 @@ const UrlContext = createContext<LinkProviderValue>({
 const UrlProvider = ({ children }: { children: ReactNode; }) => {
 	const [urls, setUrls] = useState<UrlItem[]>([]);
 	const [lastCheckedDate, setLastCheckedDate] = useState<Date | null>(null);
-	
+
 	useEffect(() => {
 		fetchExistingUrls()
-
+		setTimeout(() => {
+				handleUrlChecks()
+		}, 100);
+		
 		const interval = setInterval(handleUrlChecks, URL_CHECK_INTERVAL);
 		return () => clearInterval(interval);
 	}, []);
@@ -57,7 +63,6 @@ const UrlProvider = ({ children }: { children: ReactNode; }) => {
 			resultsPromise.then(result => {
 				setUrls(result);
 				setLastCheckedDate(new Date());
-				console.log("result: ", result, new Date())
 			})
 
 			return prevUrls;
@@ -70,6 +75,8 @@ const UrlProvider = ({ children }: { children: ReactNode; }) => {
 			value={{
 				urls: urls,
 				setUrls: setUrls,
+				online: urls.filter(u => u.status)?.length ?? 0,
+				offline: urls.filter(u => !u.status)?.length ?? 0,
 				lastCheckedDate: lastCheckedDate,
 				setLastCheckedDate: setLastCheckedDate
 			}}

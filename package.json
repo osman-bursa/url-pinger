@@ -1,13 +1,19 @@
 {
   "name": "url-pinger",
+  "productName":"URL Pinger",
+  "build": {
+    "appId": "com.osmanbursa.urlpinger",
+    "productName": "URL Pinger"
+  },
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8",

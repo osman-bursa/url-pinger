@@ -1,6 +1,6 @@
 import { app, BrowserWindow, screen, ipcMain, shell } from 'electron'
 import { createRequire } from 'node:module'
-import { fileURLToPath, Url } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fetch from 'node-fetch'
 import { Database as BetterSqliteDatabase } from 'better-sqlite3'
@@ -11,6 +11,8 @@ const require = createRequire(import.meta.url)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const Database = require('better-sqlite3');
+
+app.setName("URL_Pinger")  
 
 // The built directory structure
 //
@@ -57,7 +59,7 @@ function createWindow() {
 	const display = screen.getDisplayNearestPoint(cursorPoint)
 	const { x, y, width, height } = display.workArea
 
-	const windowWidth = 280
+	const windowWidth = 220
 	const windowHeight = Math.floor(height * 0.6)
 	const maxHeight = height
 
@@ -71,7 +73,7 @@ function createWindow() {
 		alwaysOnTop: true,
 		skipTaskbar: false,
 		frame: false,
-		icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+		icon: path.join(process.env.VITE_PUBLIC, 'url-pinger.png'),
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.mjs')
 		}
@@ -88,8 +90,39 @@ function createWindow() {
 		// win.loadFile('dist/index.html')
 		win.loadFile(path.join(RENDERER_DIST, 'index.html'))
 	}
+}
 
-	console.log("app window created successfully")
+function shrink() {
+	if (!win) return
+
+	const { width, height } = screen.getPrimaryDisplay().workAreaSize
+
+	const minimizedWidth = 60
+	const minimizedHeight = 60
+
+	win.setBounds({
+		x: width - minimizedWidth,
+		y: height - minimizedHeight,
+		width: minimizedWidth,
+		height: minimizedHeight,
+	})
+	win.resizable = false
+}
+
+function expand() {
+	if (!win) return
+
+	const { width, height } = screen.getPrimaryDisplay().workAreaSize
+	const normalWidth = 220
+	const normalHeight = Math.floor(height * 0.6)
+
+	win.setBounds({
+		x: width - normalWidth,
+		y: height - normalHeight,
+		width: normalWidth,
+		height: normalHeight,
+	})
+	win.resizable = true
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -162,6 +195,10 @@ ipcMain.handle('get-urls', () => {
 		status: !!r.status
 	}))
 })
+
+ipcMain.handle("shrink", () => shrink())
+ipcMain.handle("expand", () => expand())
+ipcMain.handle("quit-app", () => app.quit())
 
 app.whenReady().then(() => {
 	connectToDb()
