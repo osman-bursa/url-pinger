@@ -1,4 +1,4 @@
-import { Grip, Maximize2, X } from "lucide-react"
+import { Maximize2, X } from "lucide-react"
 import { useUrls } from "../providers/UrlProvider"
 import cn from "../utils/cn"
 import { expand, quit } from "../services"
